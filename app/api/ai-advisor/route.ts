@@ -11,35 +11,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
   }
 
-  // Fetch user profile
-  const profile = await prisma.userProfile.findUnique({
-    where: { userId: session.user.id },
+  // Look up real DB user by email to avoid JWT session ID mismatches
+  const dbUser = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+    include: { profile: true },
   })
+
+  if (!dbUser) {
+    return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+  }
+
+  const profile = dbUser.profile
+
+  console.log('[ai-advisor] session.user.id:', session.user.id)
+  console.log('[ai-advisor] dbUser.id:', dbUser.id)
+  console.log('[ai-advisor] profile found:', !!profile)
+  console.log('[ai-advisor] monthlyIncome:', profile?.monthlyIncome)
 
   if (!profile || !profile.monthlyIncome) {
     return NextResponse.json({ error: 'Please complete your financial profile first' }, { status: 400 })
   }
 
-  // Fetch last 3 months of transactions for spending context
   const threeMonthsAgo = new Date()
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
 
   const transactions = await prisma.transaction.findMany({
-    where: {
-      userId: session.user.id,
-      type: 'expense',
-      date: { gte: threeMonthsAgo },
-    },
+    where: { userId: dbUser.id, type: 'expense', date: { gte: threeMonthsAgo } },
     orderBy: { date: 'desc' },
   })
 
-  // Aggregate spending by category
   const categoryTotals: Record<string, number> = {}
   transactions.forEach(t => {
     categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount
   })
 
-  // Average monthly spending per category
   const avgMonthlySpending: Record<string, number> = {}
   Object.entries(categoryTotals).forEach(([cat, total]) => {
     avgMonthlySpending[cat] = Math.round(total / 3)
@@ -50,6 +55,8 @@ export async function POST(req: NextRequest) {
   const disposable = profile.monthlyIncome - fixedTotal
   const savingsTarget = Math.round(profile.monthlyIncome * (profile.savingsGoalPct / 100))
   const budgetableAmount = Math.max(0, disposable - savingsTarget)
+
+  console.log('[ai-advisor] fixedTotal:', fixedTotal, 'budgetableAmount:', budgetableAmount)
 
   const prompt = `You are a personal finance advisor. A user wants help allocating their monthly budget.
 
@@ -68,7 +75,7 @@ ${Object.entries(avgMonthlySpending).length > 0
   : '- No transaction history yet'}
 
 TASK:
-Allocate the $${budgetableAmount} budgetable amount across spending categories. 
+Allocate the $${budgetableAmount} budgetable amount across spending categories.
 - Only include variable expense categories (not income categories like Salary, Freelance, Investment)
 - Respect their priorities — allocate more to higher-priority categories
 - Use their past spending patterns as a guide, but optimize toward healthier finances

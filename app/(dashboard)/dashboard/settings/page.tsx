@@ -33,7 +33,7 @@ export default function SettingsPage() {
       .then(r => r.json())
       .then(data => {
         if (data) {
-          setMonthlyIncome(data.monthlyIncome?.toString() || '')
+          setMonthlyIncome(data.monthlyIncome > 0 ? data.monthlyIncome.toString() : '')
           setSavingsGoalPct(data.savingsGoalPct || 20)
           setLifestyleNote(data.lifestyleNote || '')
           setFixedExpenses((data.fixedExpenses as FixedExpense[]) || [])
@@ -71,18 +71,27 @@ export default function SettingsPage() {
   }
 
   async function save() {
+    const incomeValue = parseFloat(monthlyIncome)
+    if (!incomeValue || incomeValue <= 0) {
+      alert('Please enter your monthly income before saving.')
+      return
+    }
     setSaving(true)
-    await fetch('/api/profile', {
+    const payload = {
+      monthlyIncome: incomeValue,
+      fixedExpenses,
+      priorities,
+      savingsGoalPct,
+      lifestyleNote,
+    }
+    console.log('[settings] saving payload:', JSON.stringify(payload))
+    const res = await fetch('/api/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        monthlyIncome: parseFloat(monthlyIncome) || 0,
-        fixedExpenses,
-        priorities,
-        savingsGoalPct,
-        lifestyleNote,
-      }),
+      body: JSON.stringify(payload),
     })
+    const data = await res.json()
+    console.log('[settings] save response:', JSON.stringify(data))
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)

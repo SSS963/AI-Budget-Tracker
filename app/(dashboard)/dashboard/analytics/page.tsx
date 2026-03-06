@@ -24,11 +24,12 @@ export default function AnalyticsPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   const tooltipStyle = {
-    backgroundColor: '#141210',
-    border: '1px solid #1f1d1a',
+    backgroundColor: '#1c1917',
+    border: '1px solid #2d2926',
     borderRadius: '12px',
     color: '#f5f0e8',
     fontSize: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
   }
 
   if (loading) return (
@@ -91,27 +92,88 @@ export default function AnalyticsPage() {
           {categorySpending.length === 0 ? (
             <div className="flex items-center justify-center h-52 text-muted-foreground text-sm">No expense data</div>
           ) : (
-            <div className="flex gap-4 items-center">
-              <ResponsiveContainer width="50%" height={180}>
-                <PieChart>
-                  <Pie data={categorySpending} dataKey="amount" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={2}>
-                    {categorySpending.map((entry: any, i: number) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-2 overflow-y-auto max-h-48 scrollbar-hide">
-                {categorySpending.slice(0, 7).map((c: any) => (
-                  <div key={c.category} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
-                      <span className="text-xs text-muted-foreground">{c.category}</span>
+            <div className="flex gap-6 items-center">
+              <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categorySpending}
+                      dataKey="amount"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={52}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      stroke="none"
+                    >
+                      {categorySpending.map((entry: any, i: number) => (
+                        <Cell key={i} fill={entry.color} opacity={0.9} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null
+                        const d = payload[0].payload
+                        const total = categorySpending.reduce((s: number, c: any) => s + c.amount, 0)
+                        const pct = total > 0 ? Math.round((d.amount / total) * 100) : 0
+                        return (
+                          <div style={{
+                            background: '#1c1917',
+                            border: `1px solid ${d.color}40`,
+                            borderRadius: 12,
+                            padding: '10px 14px',
+                            boxShadow: `0 4px 24px ${d.color}30`,
+                            minWidth: 140,
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                              <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: d.color }} />
+                              <span style={{ color: '#f5f0e8', fontSize: 13, fontWeight: 600 }}>{d.category}</span>
+                            </div>
+                            <div style={{ color: d.color, fontSize: 16, fontWeight: 700, fontFamily: 'monospace' }}>
+                              {formatCurrency(d.amount)}
+                            </div>
+                            <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>{pct}% of total spending</div>
+                          </div>
+                        )
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center label */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <span style={{ fontSize: 10, color: '#64748b' }}>Total</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', fontFamily: 'monospace' }}>
+                    {formatCurrency(categorySpending.reduce((s: number, c: any) => s + c.amount, 0))}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-2.5 overflow-y-auto max-h-48 scrollbar-hide">
+                {categorySpending.slice(0, 7).map((c: any) => {
+                  const total = categorySpending.reduce((s: number, x: any) => s + x.amount, 0)
+                  const pct = total > 0 ? Math.round((c.amount / total) * 100) : 0
+                  return (
+                    <div key={c.category}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                          <span className="text-xs text-muted-foreground">{c.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{pct}%</span>
+                          <span className="text-xs font-mono font-medium">{formatCurrency(c.amount)}</span>
+                        </div>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: c.color }} />
+                      </div>
                     </div>
-                    <span className="text-xs font-mono">{formatCurrency(c.amount)}</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
