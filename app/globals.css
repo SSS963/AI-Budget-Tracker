@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 14% 4%;
+    --foreground: 40 30% 95%;
+    --card: 20 10% 7%;
+    --card-foreground: 40 30% 95%;
+    --popover: 20 10% 7%;
+    --popover-foreground: 40 30% 95%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 20 14% 4%;
+    --secondary: 20 10% 12%;
+    --secondary-foreground: 40 30% 95%;
+    --muted: 20 10% 12%;
+    --muted-foreground: 40 15% 55%;
+    --accent: 142 71% 45%;
+    --accent-foreground: 20 14% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 40 30% 95%;
+    --border: 20 10% 14%;
+    --input: 20 10% 14%;
+    --ring: 142 71% 45%;
+    --radius: 0.75rem;
+
+    --income: 142 71% 45%;
+    --expense: 0 84% 60%;
+    --savings: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent;
+  }
+
+  .stat-value {
+    @apply font-mono text-2xl font-medium tracking-tight;
+  }
+
+  .income-text {
+    @apply text-emerald-400;
+  }
+
+  .expense-text {
+    @apply text-red-400;
+  }
+
+  .savings-text {
+    @apply text-blue-400;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* Smooth transitions */
+* { transition-property: color, background-color, border-color, opacity, box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
