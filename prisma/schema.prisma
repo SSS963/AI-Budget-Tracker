@@ -1,0 +1,30 @@
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  transactions Transaction[]
+  budgets      Budget[]
+  createdAt    DateTime      @default(now())
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float
+  description String
+  category    String
+  type        String   // "income" | "expense"
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  category  String
+  limit     Float
+  month     Int
+  year      Int
+}
