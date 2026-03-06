@@ -3,10 +3,10 @@ generator client {
 }
 
 datasource db {
-     provider  = "postgresql"
-     url       = env("DATABASE_URL")
-     directUrl = env("DIRECT_URL")
-   }
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 
 model Account {
   id                String  @id @default(cuid())
@@ -45,7 +45,21 @@ model User {
   sessions      Session[]
   transactions  Transaction[]
   budgets       Budget[]
+  profile       UserProfile?
   createdAt     DateTime      @default(now())
+}
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthlyIncome     Float    @default(0)
+  fixedExpenses     Json     @default("[]")  // [{category, amount, label}]
+  priorities        String[] @default([])    // ordered list of categories user cares about
+  savingsGoalPct    Int      @default(20)    // % of income to save
+  lifestyleNote     String?  // free text: "student in Singapore, eat out often"
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
 }
 
 model VerificationToken {

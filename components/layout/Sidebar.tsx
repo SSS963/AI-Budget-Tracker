@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, ArrowLeftRight, Target, BarChart3, LogOut, Wallet } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Target, BarChart3, LogOut, Wallet, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { href: '/dashboard/budgets', label: 'Budgets', icon: Target },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/settings', label: 'Financial Profile', icon: Settings },
 ]
 
 interface SidebarProps {

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { formatCurrency, MONTHS, CURRENT_YEAR } from '@/lib/utils'
 import { CATEGORIES, CATEGORY_COLORS, type Budget } from '@/types'
+import { AIBudgetAdvisor } from '@/components/forms/AIBudgetAdvisor'
 
 export default function BudgetsPage() {
   const now = new Date()
@@ -89,6 +90,9 @@ export default function BudgetsPage() {
           <p className={`font-mono text-lg font-medium ${totalBudgeted - totalSpent < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(totalBudgeted - totalSpent)}</p>
         </div>
       </div>
+
+      {/* AI Advisor */}
+      <AIBudgetAdvisor month={month} year={year} onApply={fetchData} />
 
       <div className="grid grid-cols-3 gap-6">
         {/* Add Budget Form */}
